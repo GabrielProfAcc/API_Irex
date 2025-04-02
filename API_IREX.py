@@ -1,31 +1,38 @@
+import streamlit as st
 import pyodbc
 import pandas as pd
 
-# Configura tu conexión con los parámetros de tu base de datos
-server = 'SIQ-11WX2T3'  # Puede ser una dirección IP o nombre del servidor
-database = 'SCADA'
-username = 'sa'
-password = 'siq123'
+st.set_page_config(page_title="Api Neutralización", page_icon="🌟")  # Configura el título de la página y el icono
 
-# Cadena de conexión ODBC
-conn_str = (
-    f'DRIVER={{ODBC Driver 17 for SQL Server}};'
-    f'SERVER={server};'
-    f'DATABASE={database};'
-    f'UID={username};'
-    f'PWD={password}'
-)
+# Initialize connection.
+# Uses st.cache_resource to only run once.
+@st.cache_resource
+def init_connection():
+    return pyodbc.connect(
+        "DRIVER={ODBC Driver 17 for SQL Server};SERVER="
+        + st.secrets["server"]
+        + ";DATABASE="
+        + st.secrets["database"]
+        + ";UID="
+        + st.secrets["username"]
+        + ";PWD="
+        + st.secrets["password"]
+    )
 
-# Establecer la conexión
-conn = pyodbc.connect(conn_str)
+conn = init_connection()
 
-# Ejecutar una consulta SQL y convertir el resultado directamente a un DataFrame
-query = 'SELECT * FROM Transaccion_neutralizacion'  # Tu consulta SQL aquí
+
+query = "SELECT * from Transaccion_neutralizacion"
 df = pd.read_sql(query, conn)
 
 import streamlit as st
+import pandas as pd
 
-st.title("Api Neutralización")
+# Título y cabecera
+from streamlit_extras.dataframe_explorer import dataframe_explorer
+#----------------------------------------------------------------------------------
+st.header("API neutralización", divider=True)
 
-st.dataframe(df)
 
+filtered_df = dataframe_explorer(df, case=False)
+st.dataframe(filtered_df, use_container_width=True)
